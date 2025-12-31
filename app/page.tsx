@@ -121,14 +121,14 @@ function ArchiveContent() {
     setFormData({ name: "", symbol: "", network: "", category: "", status: "Active", date: "", github: "", medium: "", farcaster: "", base: "", funding: "", notes: "" });
   };
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     if (!formData.name || !formData.symbol) return alert("Project Name and Symbol are required.");
 
     const newEntry: Project = {
       id: editingId || `manual-${Date.now()}`,
       name: formData.name,
       logo: formData.symbol,
-      category: formData.category || "Infrastructure", // Use manual category
+      category: formData.category || "Infrastructure",
       launchDate: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
       network: formData.network || "Ethereum",
       notes: formData.notes || "",
@@ -140,14 +140,32 @@ function ArchiveContent() {
       baseUrl: formData.base || "#"
     };
 
-    if (editingId) {
-      setProjects(prev => prev.map(p => p.id === editingId ? { ...newEntry, id: editingId } : p));
-    } else {
-      setProjects(prev => [newEntry, ...prev]);
-    }
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-password': SITE_CONFIG.admin.password
+        },
+        body: JSON.stringify(newEntry)
+      });
 
-    resetForm();
-    alert(editingId ? "Entry Updated Successfully" : "Entry Added to Archive");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to save project');
+      }
+
+      if (editingId) {
+        setProjects(prev => prev.map(p => p.id === editingId ? { ...newEntry, id: editingId } : p));
+      } else {
+        setProjects(prev => [newEntry, ...prev]);
+      }
+
+      resetForm();
+      alert(editingId ? "Entry Updated Successfully" : "Entry Added to Archive");
+    } catch (error) {
+      alert(`Error saving project: ${(error as Error).message}`);
+    }
   };
 
   // Filter projects logic (using local state projects instead of initial)
