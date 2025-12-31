@@ -182,8 +182,8 @@ function ArchiveContent() {
             <div className="flex items-center gap-6">
               <input
                 type="range"
-                min="2020"
-                max="2040"
+                min="2000"
+                max="2050"
                 value={viewedDate.getFullYear()}
                 onChange={(e) => setViewedDate(new Date(parseInt(e.target.value), viewedDate.getMonth(), viewedDate.getDate()))}
                 className="w-48 h-1 bg-muted-foreground rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground"
@@ -627,3 +627,4 @@ export default function ArchivePage() {
     </Suspense>
   );
 }
+
