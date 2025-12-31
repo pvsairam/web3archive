@@ -2,7 +2,8 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Globe, Twitter, Clock, Fingerprint } from "lucide-react";
+import { X, Globe, Clock, Fingerprint } from "lucide-react";
+import { SiGithub, SiMedium } from "react-icons/si";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
                                             <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest bg-emerald-500/5 text-emerald-500 border-emerald-500/20 px-3 italic">
                                                 Registry Valid
                                             </Badge>
-                                            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest font-bold">v2.0.ARCHIVE</span>
+                                            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest font-bold">v1.0.ARCHIVE</span>
                                         </div>
                                     </div>
                                 </div>
@@ -97,31 +98,39 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
 
                                 <div className="space-y-8">
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic">Official Links</h3>
-                                    <div className="flex gap-4">
-                                        {project.twitterUrl && (
+                                    <div className="flex flex-wrap gap-4">
+                                        {project.githubUrl && project.githubUrl !== "#" && (
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
-                                                onClick={() => window.open(project.twitterUrl, "_blank")}
+                                                className="flex-1 min-w-[120px] h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
+                                                onClick={() => window.open(project.githubUrl, "_blank")}
                                             >
-                                                <Twitter className="h-4 w-4" /> Twitter
+                                                <SiGithub className="h-4 w-4" /> GitHub
                                             </Button>
                                         )}
-                                        {project.telegramUrl && (
+                                        {project.mediumUrl && project.mediumUrl !== "#" && (
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
-                                                onClick={() => window.open(project.telegramUrl, "_blank")}
+                                                className="flex-1 min-w-[120px] h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
+                                                onClick={() => window.open(project.mediumUrl, "_blank")}
                                             >
-                                                <Globe className="h-4 w-4" /> Telegram
+                                                <SiMedium className="h-4 w-4" /> Medium
                                             </Button>
                                         )}
-                                        {/* Fallback or specific Website button if needed, but reusing Globe for Telegram per user request or standard Website? User asked for Twitter/Telegram icon on bottom. Here it's for the project. Keeping it generic if no specific fields, but assuming we want to use the fields we just added. */}
-                                        {project.websiteUrl && (
+                                        {project.farcasterUrl && project.farcasterUrl !== "#" && (
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
-                                                onClick={() => window.open(project.websiteUrl, "_blank")}
+                                                className="flex-1 min-w-[120px] h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
+                                                onClick={() => window.open(project.farcasterUrl, "_blank")}
+                                            >
+                                                <Globe className="h-4 w-4" /> Farcaster
+                                            </Button>
+                                        )}
+                                        {project.baseUrl && project.baseUrl !== "#" && (
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 min-w-[120px] h-14 rounded-2xl border-border bg-muted/30 text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-all gap-3 italic text-muted-foreground"
+                                                onClick={() => window.open(project.baseUrl, "_blank")}
                                             >
                                                 <Globe className="h-4 w-4" /> Website
                                             </Button>
