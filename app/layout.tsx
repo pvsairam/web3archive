@@ -12,8 +12,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Web3 Archive 2025",
-  description: "A premium, dark-mode SaaS dashboard.",
+  title: "Web3 Archive",
+  description: "Discover and track Web3 project launches.",
   icons: {
     icon: "/icon.png",
   },
@@ -41,7 +41,9 @@ export default function RootLayout({
         >
           <ArchiveProvider>
             <div className="flex min-h-screen">
-              <Sidebar />
+              <Suspense fallback={<div className="w-64" />}>
+                <Sidebar />
+              </Suspense>
               <div className="flex flex-1 flex-col pl-64 transition-all duration-300 ease-in-out">
                 <Suspense fallback={<div className="h-20" />}>
                   <Header />
