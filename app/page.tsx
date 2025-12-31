@@ -601,7 +601,7 @@ function ArchiveContent() {
           <div className="flex items-center gap-4">
             <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/20" />
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
-              Archive Registry v4.0.0
+              Archive Registry v1.0.0
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -627,4 +627,5 @@ export default function ArchivePage() {
     </Suspense>
   );
 }
+
 
