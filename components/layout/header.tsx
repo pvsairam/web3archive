@@ -49,7 +49,7 @@ export function Header() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-foreground" />
                     <Input
                         type="search"
-                        {/*placeholder={`Query the ${format(viewedDate, "yyyy")} temporal ledger...`}*/}
+                        /*placeholder={`Query the ${format(viewedDate, "yyyy")} temporal ledger...`}*/
                         placeholder="Search projects..."
                         value={searchTerm}
                         onChange={handleSearch}
@@ -68,4 +68,5 @@ export function Header() {
         </header>
     );
 }
+
 
