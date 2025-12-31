@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
+import { format, getYear } from "date-fns";
+import { useArchive } from "@/context/archive-context";
 import { type Project } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +15,18 @@ interface TimelineViewProps {
 }
 
 export function TimelineView({ projects, onProjectClick }: TimelineViewProps) {
+    const { viewedDate } = useArchive();
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4;
 
-    const sortedProjects = [...projects].sort((a, b) =>
+    const selectedYear = getYear(viewedDate);
+    
+    const filteredProjects = projects.filter(p => {
+        const projectYear = getYear(new Date(p.launchDate));
+        return projectYear === selectedYear;
+    });
+
+    const sortedProjects = [...filteredProjects].sort((a, b) =>
         new Date(a.launchDate).getTime() - new Date(b.launchDate).getTime()
     );
 
@@ -25,10 +34,22 @@ export function TimelineView({ projects, onProjectClick }: TimelineViewProps) {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
-    const totalPages = Math.ceil(projects.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
     return (
         <div className="flex flex-col">
+            <div className="flex items-center justify-center py-8">
+                <h2 className="text-2xl font-black tracking-[0.2em] text-foreground uppercase italic">
+                    {selectedYear} Timeline
+                </h2>
+            </div>
+            
+            {filteredProjects.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                    <p className="text-muted-foreground text-sm italic">No projects launched in {selectedYear}</p>
+                    <p className="text-muted-foreground/60 text-xs mt-2">Use the calendar navigation to select a different year</p>
+                </div>
+            ) : (
             <div className="relative py-24 px-8 max-w-5xl mx-auto w-full">
                 {/* Central Line */}
                 <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-border/40 to-transparent -translate-x-1/2 hidden md:block" />
@@ -111,6 +132,7 @@ export function TimelineView({ projects, onProjectClick }: TimelineViewProps) {
                     })}
                 </div>
             </div>
+            )}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
