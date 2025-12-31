@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CalendarGrid } from "@/components/archive/calendar-grid";
 import { ProjectDrawer } from "@/components/archive/project-drawer";
@@ -9,7 +9,6 @@ import { type Project } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Twitter, Globe, Pencil, Trash2 } from "lucide-react";
-import { PROJECTS as INITIAL_PROJECTS } from "@/lib/data";
 import { TimelineView } from "@/components/archive/timeline-view";
 import { ListView } from "@/components/archive/list-view";
 import { useSearchParams } from "next/navigation";
@@ -66,10 +65,29 @@ function ArchiveContent() {
   }, []);
 
   // -- Admin State Logic --
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Fetch projects from database on mount
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const response = await fetch('/api/projects');
+        if (response.ok) {
+          const data = await response.json();
+          setProjects(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch projects:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
   const [formData, setFormData] = useState({
-    name: "", symbol: "", network: "", category: "", status: "Active", date: "", github: "", medium: "", farcaster: "", base: ""
+    name: "", symbol: "", network: "", category: "", status: "Active", date: "", github: "", medium: "", farcaster: "", base: "", funding: "", notes: ""
   });
 
   const handleEdit = (project: Project) => {
@@ -84,7 +102,9 @@ function ArchiveContent() {
       github: project.githubUrl || "",
       medium: project.mediumUrl || "",
       farcaster: project.farcasterUrl || "",
-      base: project.baseUrl || ""
+      base: project.baseUrl || "",
+      funding: (project as any).fundingRaised || "",
+      notes: project.notes || ""
     });
     // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -98,7 +118,7 @@ function ArchiveContent() {
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ name: "", symbol: "", network: "", category: "", status: "Active", date: "", github: "", medium: "", farcaster: "", base: "" });
+    setFormData({ name: "", symbol: "", network: "", category: "", status: "Active", date: "", github: "", medium: "", farcaster: "", base: "", funding: "", notes: "" });
   };
 
   const handleCommit = () => {
@@ -111,7 +131,7 @@ function ArchiveContent() {
       category: formData.category || "Infrastructure", // Use manual category
       launchDate: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
       network: formData.network || "Ethereum",
-      notes: "Manual Entry",
+      notes: formData.notes || "",
       verificationStatus: "Verified",
       status: (formData.status as "Active" | "Rugged" | "Hacked" | "Scam" | "Inactive") || "Active",
       githubUrl: formData.github || "#",
@@ -152,9 +172,8 @@ function ArchiveContent() {
   };
 
   return (
-    <div className="max-w-[1500px] mx-auto px-8 md:px-16 py-16 space-y-24">
-      <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-
+    <div className="max-w-[1500px] mx-auto px-8 md:px-16 pt-4 pb-16 space-y-16">
+      
       {/* View Controls & Header */}
       <div className="relative z-10 flex flex-col xl:flex-row xl:items-end justify-between gap-16">
         <div className="space-y-8 flex-1">
@@ -182,7 +201,7 @@ function ArchiveContent() {
             <div className="flex items-center gap-6">
               <input
                 type="range"
-                min="2000"
+                min="2009"
                 max="2050"
                 value={viewedDate.getFullYear()}
                 onChange={(e) => setViewedDate(new Date(parseInt(e.target.value), viewedDate.getMonth(), viewedDate.getDate()))}
@@ -264,8 +283,8 @@ function ArchiveContent() {
                 style={{ backgroundColor: 'hsl(var(--background))', color: 'hsl(var(--foreground))' }}
               >
                 <div className="space-y-2 text-center">
-                  <h2 className="text-2xl font-black uppercase tracking-[0.2em] italic text-zinc-900 dark:text-white">Admin Login</h2>
-                  <p className="text-zinc-600 dark:text-zinc-300 font-mono text-xs tracking-widest uppercase">Please verify your credentials</p>
+                  <h2 className="text-3xl font-black uppercase tracking-[0.1em] italic text-foreground">Admin Login</h2>
+                  <p className="text-muted-foreground font-mono text-xs tracking-widest uppercase">Please verify your credentials</p>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -274,8 +293,8 @@ function ArchiveContent() {
                       type="password"
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
-                      className="w-full h-14 bg-zinc-50 dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 rounded-2xl px-6 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-center tracking-widest text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 transition-all font-bold"
-                      placeholder="••••••••••••"
+                      className="form-input w-full h-14 rounded-2xl px-6 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tracking-widest transition-all font-bold border-2 placeholder:text-zinc-500"
+                      placeholder="Enter password..."
                     />
                   </div>
                   <Button
@@ -290,7 +309,7 @@ function ArchiveContent() {
               <div className="w-full space-y-8">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-black uppercase tracking-[0.2em] italic text-foreground">Registry Control <span className="text-xs text-muted-foreground not-italic border border-border px-2 py-1 rounded-md ml-2">v4.2.0</span></h2>
+                    <h2 className="text-2xl font-black uppercase tracking-[0.2em] italic text-foreground">Registry Control <span className="text-xs text-muted-foreground not-italic border border-border px-2 py-1 rounded-md ml-2">v1.0.0</span></h2>
                     <p className="text-muted-foreground font-mono text-xs tracking-widest uppercase">Administrative Override / Temporal Data Curation</p>
                   </div>
                   <div className="h-8 px-4 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest">
@@ -308,7 +327,7 @@ function ArchiveContent() {
                     {/* Form Header */}
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-200 dark:border-zinc-800">
                       <div>
-                        <h3 className="text-sm font-black uppercase tracking-wider text-zinc-900 dark:text-white">
+                        <h3 className="text-sm font-black uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
                           {editingId ? "Update Entry" : "New Entry"}
                         </h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-300 mt-1">
@@ -345,15 +364,10 @@ function ArchiveContent() {
                           <input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                            style={{
-                              backgroundColor: 'hsl(var(--muted))',
-                              color: 'hsl(var(--foreground))'
-                            }}
-                            placeholder="e.g. Nexus Protocol"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="e.g. Bitcoin"
                           />
                         </div>
 
@@ -365,13 +379,10 @@ function ArchiveContent() {
                           <input
                             value={formData.symbol}
                             onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                            placeholder="e.g. NX"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="e.g. BTC"
                           />
                         </div>
 
@@ -383,12 +394,9 @@ function ArchiveContent() {
                           <input
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="e.g. DeFi, AI, RWA"
                           />
                         </div>
@@ -401,11 +409,8 @@ function ArchiveContent() {
                           <select
                             value={formData.status}
                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all appearance-none
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all appearance-none border
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
                             <option value="Active">Active</option>
                             <option value="Rugged">Rugged</option>
@@ -423,12 +428,9 @@ function ArchiveContent() {
                           <input
                             value={formData.network}
                             onChange={(e) => setFormData({ ...formData, network: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Ethereum"
                           />
                         </div>
@@ -442,13 +444,41 @@ function ArchiveContent() {
                             type="date"
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
+
+                        {/* Funding Raised */}
+                        <div className="space-y-2">
+                          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                            Funding Raised
+                          </label>
+                          <input
+                            value={formData.funding}
+                            onChange={(e) => setFormData({ ...formData, funding: e.target.value })}
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="e.g. $10M"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Protocol Notes - Full Width */}
+                      <div className="space-y-2 mt-6">
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Protocol Notes
+                        </label>
+                        <textarea
+                          value={formData.notes}
+                          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                          rows={3}
+                          className="form-input w-full rounded-lg px-4 py-3 text-sm font-medium transition-all border
+                            placeholder:text-zinc-500
+                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          placeholder="Brief description or notes about the project..."
+                        />
                       </div>
                     </div>
 
@@ -471,12 +501,9 @@ function ArchiveContent() {
                           <input
                             value={formData.github}
                             onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="https://github.com/..."
                           />
                         </div>
@@ -489,12 +516,9 @@ function ArchiveContent() {
                           <input
                             value={formData.medium}
                             onChange={(e) => setFormData({ ...formData, medium: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="https://medium.com/@..."
                           />
                         </div>
@@ -507,12 +531,9 @@ function ArchiveContent() {
                           <input
                             value={formData.farcaster}
                             onChange={(e) => setFormData({ ...formData, farcaster: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="@username"
                           />
                         </div>
@@ -525,12 +546,9 @@ function ArchiveContent() {
                           <input
                             value={formData.base}
                             onChange={(e) => setFormData({ ...formData, base: e.target.value })}
-                            className="w-full h-11 rounded-lg px-4 text-sm font-medium transition-all
-                              bg-zinc-50 dark:bg-zinc-900 
-                              text-zinc-900 dark:text-zinc-100
-                              border border-zinc-300 dark:border-zinc-600
-                              placeholder:text-zinc-400 dark:placeholder:text-zinc-500
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                            className="form-input w-full h-11 rounded-lg px-4 text-sm font-medium transition-all border
+                              placeholder:text-zinc-500
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="base.org/name/..."
                           />
                         </div>
@@ -627,5 +645,3 @@ export default function ArchivePage() {
     </Suspense>
   );
 }
-
-
